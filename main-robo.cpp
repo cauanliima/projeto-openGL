@@ -107,9 +107,9 @@ static void createRobot() {
     
     // Right arm
     glPushMatrix();
+    glRotatef(angle, 0, 0, 1.0f);
     glTranslatef(-armPos, 1, 0);
     //glRotatef(leftRun, 2.0f, 0, 0);
-    glRotatef(angle, 0, 0, 1.0f);
     glColor3f(red, green, blue);
     glScalef(0.3, 1.8, 0.5);
     glutSolidCube(1);
