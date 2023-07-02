@@ -42,10 +42,10 @@ int eyeBlue = 1;
 
 GLfloat ambient_light[]  = { 0, 0, 0, 1.0f };
 GLfloat diffuse_light[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
-GLfloat specular_light[] = { 0.1f, 0.1f, 0.1f, 1.0f };
-GLfloat light_position[] = { -10.0f, 0, -2.0f, 1.0f};
+GLfloat specular_light[] = { 0, 0, 0, 1.0f };
+GLfloat light_position[] = { -10.0f, 10.0f, -2.0f, 1.0f};
 
-GLfloat mat_ambient[]    = { 0.7f, 0.7f, 0.7f, 1.0f };
+GLfloat mat_ambient[]    = { 1, 1, 1, 1 };
 GLfloat mat_diffuse[]    = { 0.7f, 0.7f, 0.7f, 1.0f };
 GLfloat mat_specular[]   = { 1.0f, 1.0f, 1.0f, 1.0f };
 GLfloat high_shininess[] = { 10.0f };
@@ -125,19 +125,19 @@ static void createRobot() {
     glutSolidCube(1);
     glPopMatrix();
     
-    // Right eye
-    glPushMatrix();
-    glTranslatef(-0.5, 2, 0.5);
-    glColor3f(eyeRed, eyeGreen, eyeBlue);
-    glScalef(0.1, 0.1, 0.1);
-    glutSolidCube(1);
-    glPopMatrix();
-    
     // Left eye
     glPushMatrix();
     glTranslatef(0.5, 2, 0.5);
     glColor3f(eyeRed, eyeGreen, eyeBlue);
     glScalef(0.1, 0.1, 0.1);
+    glutSolidCube(1);
+    glPopMatrix();
+
+    // chão
+    glPushMatrix();
+    glTranslatef(0, -5, 0);
+    glColor3f(0.02, 0.02, 0.02);
+    glScalef(20, 0.1, 20 );
     glutSolidCube(1);
     glPopMatrix();
     
@@ -295,7 +295,7 @@ void keyboard(unsigned char key, int x, int y) {
             diffuseReflect();
             break;
         case 's':           // Increase specular reflection
-            specularReflect();
+            //specularReflect();
             break;
         case 'h':           // Increase shiny
             increaseShiny();
@@ -329,9 +329,10 @@ static void display(void) {
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-10.0f, 10.0f, -10.0f, 10.0f, -10.0f, 10.0f);
+    glOrtho(-10.0f, 10.0f, -10.0f, 10.0f, -10.0f, 15.0f);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    
     // Isometric view
     glRotatef(45.0f, 1.0f, 0.0f, 0.0f);
     glRotatef(-45.0f, 0.0f, 1.0f, 0.0f);
