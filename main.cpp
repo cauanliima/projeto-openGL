@@ -34,7 +34,7 @@ bool moved = false;
 bool jumped = false;
 float passo = 0.0f;
 float passoX = 0;
-float passoY = 0; 
+float passoZ = 0; 
 float giro = 0.0f;
 
 
@@ -194,8 +194,8 @@ void desenha(void)
 
 static void createRobot() {
     glPushMatrix();
-    glTranslatef(passoX,0,passoY);
-    glRotatef(giro, 0, 1.0f, 0);
+    glTranslatef(passoX,0,passoZ);
+    glRotatef(giro,0,1,0);
 
     // Create body
     glPushMatrix();
@@ -431,13 +431,15 @@ void keyboard(unsigned char key, int x, int y) {
             jump();
             break;
         case 'i':           // Run frente
-            passoX+=cos(giro);
-            passoY+=sin(giro);
+            passoX+=sin((giro/180)*3.1416);
+            passoZ+=cos((giro/180)*3.1416);
+            std::cout<<cos((giro/180)*3.1416)<<std::endl;
+
             run();
             break;
         case 'k':           // Run tras
-            passoX-=cos(giro);
-            passoY-=sin(giro);
+            passoX-=sin((giro/180)*3.1416);
+            passoZ-=cos((giro/180)*3.1416);
             run();
             break;
         case 'j':           // roda direita
