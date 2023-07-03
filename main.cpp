@@ -9,6 +9,8 @@
 #include <ctime>
 #include <cstdlib>
 #include <iostream>
+#include <math.h>
+#include <time.h>
 #include <GL/glut.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -30,6 +32,11 @@ float angle = 50.0f;
 float armPos = 2.0f;
 bool moved = false;
 bool jumped = false;
+float passo = 0.0f;
+float passoX = 0;
+float passoY = 0; 
+float giro = 0.0f;
+
 
 // Color
 int red = 1;
@@ -40,15 +47,58 @@ int eyeRed = 1;
 int eyeGreen = 1;
 int eyeBlue = 1;
 
-GLfloat ambient_light[]  = { 0, 0, 0, 1.0f };
+GLfloat ambient_light[]  = { 0.1, 0.1, 0.1, 1.0f };
 GLfloat diffuse_light[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
 GLfloat specular_light[] = { 0, 0, 0, 1.0f };
-GLfloat light_position[] = { -10.0f, 10.0f, -2.0f, 1.0f};
+GLfloat light_position[] = { -5.0f, 0.0f, 5.0f, 1.0f};
 
 GLfloat mat_ambient[]    = { 1, 1, 1, 1 };
 GLfloat mat_diffuse[]    = { 0.7f, 0.7f, 0.7f, 1.0f };
 GLfloat mat_specular[]   = { 1.0f, 1.0f, 1.0f, 1.0f };
 GLfloat high_shininess[] = { 10.0f };
+
+int scale = 10;
+const GLfloat tam_x = 50.0f/scale;
+const GLfloat tam_y = 50.0f/scale;
+
+const GLint sy = 30/scale;
+const GLint my = 25/scale;
+const GLint hy = 20/scale;
+
+int hora;
+int minuto;
+int segundo;
+
+void circulo(GLfloat xc, GLfloat yc, GLfloat raio, bool fill)
+{
+  const GLfloat c = 3.14169f / 180.0f;
+  GLint i;
+  
+  glBegin(fill ? GL_TRIANGLE_FAN : GL_LINE_LOOP);
+  
+  for (i = 0; i <= 360; i += 2)
+  {
+    float a = i * c;
+    glVertex2f(xc + sin(a) * raio, yc + cos(a) * raio);
+  }
+  
+  glEnd();
+}
+
+void move(int n)
+{
+     // Apos a execucao desse trecho a estrutura "datahora"
+     // tera armazenada a data/hora atual do relogio da maquina
+     time_t agora = time(0);
+     struct tm *datahora = localtime(&agora);
+     
+     hora = datahora->tm_hour;
+     minuto = datahora->tm_min;
+     segundo = datahora->tm_sec;
+     
+     glutPostRedisplay(); // Pede para redesenhar a tela. Vai chamar a funcao desenha()
+     glutTimerFunc(1000, move, 0);     // Pede para chamar de novo a funcao move
+}
 
 void init() {
     
@@ -69,8 +119,84 @@ void init() {
      
 }
 
-static void createRobot() {
+// Função callback chamada para fazer o desenho
+void desenha(void)
+{
+	//Limpa a janela de visualização com a cor de fundo especificada 
+	//glClear(GL_COLOR_BUFFER_BIT);
+
+    glPushMatrix();
+
+    glRotatef(45, 0, 0, 1.0f);
+    glTranslatef(0, 0, -5);
+
+    glPushMatrix();
+    // Desenha os circulos	
+    glColor3f(0.7f, 0.7f, 0.0f); // amarelo
+    circulo(0, 0, tam_x, true);
     
+    glColor3f(0.0f, 0.0f, 0.0f); // preto
+    circulo(0, 0, tam_x, false);  
+    
+    // Calcula o angulo do segundo
+    float anguloS = segundo * 6;
+    
+    // Desenha o ponteiro do segundo
+    glRotatef(-anguloS, 0.0f, 0.0f, 1.0f);
+
+    glBegin(GL_LINES);
+    glColor3f(1.0f, 0.0f, 0.0f); // vermelho
+    glVertex3i(0,0,0);
+    glVertex3i(0,sy,0);
+    glEnd();
+    glPopMatrix();
+    //glLoadIdentity(); // Limpa as transformacoes
+    //glTranslatef(0, 0, -5);
+
+    // Calcula o angulo do minuto
+    float anguloM = minuto * 6;
+
+    glPushMatrix();
+    // Desenha o ponteiro do minuto
+    glRotatef(-anguloM, 0.0f, 0.0f, 1.0f);
+
+	glLineWidth(5);
+    glBegin(GL_LINES);
+    glColor3f(0.0f, 1.0f, 0.0f);
+    glVertex3i(0,0,0);
+    glVertex3i(0,my,0);
+    glEnd();
+    glPopMatrix();
+    //glLoadIdentity(); // Limpa as transformacoes
+    //glTranslatef(0, 0, -5);
+
+    // Calcula o angulo da hora
+	float anguloH = (hora + minuto/60.0) * 30;
+
+    glPushMatrix();
+    // Desenha o ponteiro da hora
+    glRotatef(-anguloH, 0.0f, 0.0f, 1.0f);
+
+    glBegin(GL_LINES);
+    glColor3f(0.0f, 0.0f, 1.0f);
+    glVertex3i(0,0,0);
+    glVertex3i(0,hy,0);
+    glEnd();
+    glPopMatrix();
+    
+    glPopMatrix();
+
+    //glLoadIdentity(); // Limpa as transformacoes
+
+	//Executa os comandos OpenGL 
+	//glFlush();
+}
+
+static void createRobot() {
+    glPushMatrix();
+    glTranslatef(passoX,0,passoY);
+    glRotatef(giro, 0, 1.0f, 0);
+
     // Create body
     glPushMatrix();
     glTranslatef(0, 0, 0);
@@ -133,6 +259,8 @@ static void createRobot() {
     glutSolidCube(1);
     glPopMatrix();
 
+    glPopMatrix();
+
     // chão
     glPushMatrix();
     glTranslatef(0, -5, 0);
@@ -145,7 +273,6 @@ static void createRobot() {
 
 // Move arms and legs
 static void run () {
-
     if (!moved) {
         rightRun = 25;
         leftRun = -25;
@@ -300,11 +427,24 @@ void keyboard(unsigned char key, int x, int y) {
         case 'h':           // Increase shiny
             increaseShiny();
             break;
-        case 'j':           // Jump
+        case 'u':           // Jump
             jump();
             break;
-        case 'r':           // Run
+        case 'i':           // Run frente
+            passoX+=cos(giro);
+            passoY+=sin(giro);
             run();
+            break;
+        case 'k':           // Run tras
+            passoX-=cos(giro);
+            passoY-=sin(giro);
+            run();
+            break;
+        case 'j':           // roda direita
+            giro+=10;
+            break;
+        case 'l':           // roda esquerda
+            giro-=10;
             break;
         case 't':           // Turn Around
             rightRun = 0;
@@ -352,9 +492,12 @@ static void display(void) {
     // Move back
     //glTranslatef(-6, 0, 0);
     
+
+    
     // Create the robot
     glRotatef(bodyRotate.y, 0, 1.0f, 0);
     createRobot();
+    desenha();
     
     glutSwapBuffers();
 }
@@ -365,7 +508,7 @@ int main(int argc, char** argv) {
     glutInitWindowSize(700, 700);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
     glutCreateWindow("3D Robot");
-    
+    glutTimerFunc(1000, move, 0);
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
