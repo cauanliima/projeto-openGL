@@ -1,10 +1,3 @@
-//  robot.cpp
-//  3d-robot
-//
-//  Created by Maria Miller on 4/3/15.
-//  Copyright (c) 2015 Maria Miller. All rights reserved.
-//
-
 #include <cstdio>
 #include <ctime>
 #include <cstdlib>
@@ -47,17 +40,26 @@ int eyeRed = 1;
 int eyeGreen = 1;
 int eyeBlue = 1;
 
-GLfloat ambient_light[]  = { 0.1, 0.1, 0.1, 1.0f };
+GLfloat ambient_light[]  = { 0.3, 0.3, 0.3, 1.0f };
 GLfloat diffuse_light[]  = { 1.0f, 1.0f, 1.0f, 1.0f };
 GLfloat specular_light[] = { 0, 0, 0, 1.0f };
 GLfloat light_position[] = { -5.0f, 0.0f, 5.0f, 1.0f};
 
-GLfloat mat_ambient[]    = { 1, 1, 1, 1 };
-GLfloat mat_diffuse[]    = { 0.7f, 0.7f, 0.7f, 1.0f };
+GLfloat mat_diffuse[]    = { 1,1,1, 1.0f };
 GLfloat mat_specular[]   = { 1.0f, 1.0f, 1.0f, 1.0f };
-GLfloat high_shininess[] = { 10.0f };
 
-int scale = 10;
+GLfloat no_mat[] = { 0.0, 0.0, 0.0, 1.0 };
+GLfloat mat_ambient_color[] = { 0.8, 0.8, 0.2, 1.0 };
+GLfloat no_shininess[] = { 0.0 };
+GLfloat low_shininess[] = { 5.0 };
+GLfloat mat_emission[] = {0.3, 0.2, 0.2, 0.0};
+
+GLfloat luzAmbiente[4]={0.3,0.3,0.3,1.0}; 
+// Capacidade de brilho do material
+GLfloat especularidade[4]={1.0,1.0,1.0,1.0}; 
+GLint especMaterial = 500;
+
+int scale = 15;
 const GLfloat tam_x = 50.0f/scale;
 const GLfloat tam_y = 50.0f/scale;
 
@@ -79,12 +81,11 @@ void circulo(GLfloat xc, GLfloat yc, GLfloat raio, bool fill)
   for (i = 0; i <= 360; i += 2)
   {
     float a = i * c;
-    glVertex2f(xc + sin(a) * raio, yc + cos(a) * raio);
+    glVertex3f(xc + sin(a) * raio, yc + cos(a) * raio,0);
   }
   
   glEnd();
 }
-
 void move(int n)
 {
      // Apos a execucao desse trecho a estrutura "datahora"
@@ -106,37 +107,43 @@ void init() {
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glEnable(GL_COLOR_MATERIAL);
-    
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light);
+
     glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_light);
     glLightfv(GL_LIGHT0, GL_SPECULAR, specular_light);
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-    
-    glMaterialfv(GL_FRONT, GL_AMBIENT,   mat_ambient);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE,   mat_diffuse);
-    glMaterialfv(GL_FRONT, GL_SPECULAR,  mat_specular);
-    glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess);
+    //glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 45.0);
+
+    // Define a refletância do material 
+    glMaterialfv(GL_FRONT,GL_SPECULAR, especularidade);
+    // Define a concentração do brilho
+    glMateriali(GL_FRONT,GL_SHININESS,especMaterial);
+    // Ativa o uso da luz ambiente 
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, luzAmbiente);
+
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_light);
+    glMaterialfv(GL_FRONT, GL_EMISSION, no_mat);
      
 }
 
 // Função callback chamada para fazer o desenho
-void desenha(void)
+void createClock(void)
 {
 	//Limpa a janela de visualização com a cor de fundo especificada 
 	//glClear(GL_COLOR_BUFFER_BIT);
 
     glPushMatrix();
 
-    glRotatef(45, 0, 0, 1.0f);
-    glTranslatef(0, 0, -5);
+    glRotatef(45, 0, 1, 0);
+    glTranslatef(0, 0, -7);
 
     glPushMatrix();
     // Desenha os circulos	
     glColor3f(0.7f, 0.7f, 0.0f); // amarelo
-    circulo(0, 0, tam_x, true);
+    circulo(0, 0.2, tam_x, true);
     
     glColor3f(0.0f, 0.0f, 0.0f); // preto
-    circulo(0, 0, tam_x, false);  
+    circulo(0, 0.2, tam_x, false);  
     
     // Calcula o angulo do segundo
     float anguloS = segundo * 6;
@@ -193,6 +200,7 @@ void desenha(void)
 }
 
 static void createRobot() {
+    
     glPushMatrix();
     glTranslatef(passoX,0,passoZ);
     glRotatef(giro,0,1,0);
@@ -251,6 +259,14 @@ static void createRobot() {
     glutSolidCube(1);
     glPopMatrix();
     
+    // Right eye
+    glPushMatrix();
+    glTranslatef(-0.5, 2, 0.5);
+    glColor3f(eyeRed, eyeGreen, eyeBlue);
+    glScalef(0.1, 0.1, 0.1);
+    glutSolidCube(1);
+    glPopMatrix();
+    
     // Left eye
     glPushMatrix();
     glTranslatef(0.5, 2, 0.5);
@@ -263,10 +279,11 @@ static void createRobot() {
 
     // chão
     glPushMatrix();
-    glTranslatef(0, -5, 0);
+    glTranslatef(0, -4.9, 0);
     glColor3f(0.02, 0.02, 0.02);
-    glScalef(20, 0.1, 20 );
+    glScalef(20, 0.1, 20);
     glutSolidCube(1);
+
     glPopMatrix();
     
 }
@@ -291,32 +308,7 @@ static void run () {
             rightRun++;
             leftRun--;
         }
-    }
-    
-}
-
-static void jump() {
-    
-    if (!jumped) {
-        rightRun = 0;
-        leftRun = 0;
-        ypos++;
-        rightRun--;
-        leftRun++;
-
-        if (ypos == 10)
-            jumped = true;
-        
-    }
-    
-    if (jumped) {
-        ypos--;
-        rightRun++;
-        leftRun--;
-        
-        if (ypos == 0)
-            jumped = false;
-    }
+    }   
 }
 
 // Change color of robot
@@ -325,7 +317,6 @@ static void changeColor() {
     for (int i = 0; i < 3; i++) {
         specular_light[i] = 0;
     }
-    glLightfv(GL_LIGHT0, GL_SPECULAR, specular_light);
 
     red = rand() % 2;
     green = rand() % 2;
@@ -335,12 +326,7 @@ static void changeColor() {
 
 // Blink eyes by switching from white to black to white.
 static void blink() {
-    // Change specular light so color changes are seen.
-    for (int i = 0; i < 3; i++) {
-        specular_light[i] = 0;
-    }
-    glLightfv(GL_LIGHT0, GL_SPECULAR, specular_light);
-    
+
     if (eyeRed == 1) {
         eyeRed = 0;
         eyeGreen = 0;
@@ -348,7 +334,7 @@ static void blink() {
     } else {
         eyeRed = 1;
         eyeGreen = 1;
-        eyeBlue = 1;
+        eyeBlue = 0;
     }
 }
 
@@ -386,14 +372,6 @@ static void specularReflect() {
     glLightfv(GL_LIGHT0, GL_SPECULAR, specular_light);
 }
 
-static void increaseShiny() {
-    if (high_shininess[0] >= 100)
-        high_shininess[0] = 0.0f;
-    else
-        high_shininess[0] += 10.0f;
-    
-    glMaterialfv(GL_FRONT, GL_SHININESS, high_shininess);
-}
 
 // Wave arms by moving angle from 50 to 20
 static void waveArms() {
@@ -402,11 +380,9 @@ static void waveArms() {
         angle = 20;
     else
         angle = 50;
-    
 }
 
 static void reshape(int width, int height) {
-    
     glViewport(0, 0, width, height);
 }
 
@@ -422,19 +398,14 @@ void keyboard(unsigned char key, int x, int y) {
             diffuseReflect();
             break;
         case 's':           // Increase specular reflection
-            //specularReflect();
-            break;
-        case 'h':           // Increase shiny
-            increaseShiny();
+            specularReflect();
             break;
         case 'u':           // Jump
-            jump();
+            //jump();
             break;
         case 'i':           // Run frente
             passoX+=sin((giro/180)*3.1416);
             passoZ+=cos((giro/180)*3.1416);
-            std::cout<<cos((giro/180)*3.1416)<<std::endl;
-
             run();
             break;
         case 'k':           // Run tras
@@ -474,7 +445,7 @@ static void display(void) {
     glOrtho(-10.0f, 10.0f, -10.0f, 10.0f, -10.0f, 15.0f);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    
+
     // Isometric view
     glRotatef(45.0f, 1.0f, 0.0f, 0.0f);
     glRotatef(-45.0f, 0.0f, 1.0f, 0.0f);
@@ -494,12 +465,10 @@ static void display(void) {
     // Move back
     //glTranslatef(-6, 0, 0);
     
-
-    
     // Create the robot
     glRotatef(bodyRotate.y, 0, 1.0f, 0);
     createRobot();
-    desenha();
+    createClock();
     
     glutSwapBuffers();
 }
